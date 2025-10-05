@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Focus Guard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 AI Focus Guard</h1>
+
+    <div id="no-goal-view" class="view">
+      <p class="description">Set your research goal to start a focus session</p>
+      <textarea
+        id="goal-input"
+        placeholder="Example: Research RAG classification techniques for my machine learning project..."
+        rows="4"
+      ></textarea>
+      <button id="start-session-btn" class="primary-btn">Start Focus Session</button>
+    </div>
+
+    <div id="active-session-view" class="view hidden">
+      <div class="goal-display">
+        <label>Current Goal:</label>
+        <p id="current-goal"></p>
+      </div>
+
+      <div class="session-stats">
+        <div class="stat">
+          <span class="stat-label">Evaluations:</span>
+          <span id="eval-count">0</span>/10
+        </div>
+      </div>
+
+      <div class="parked-section">
+        <h3>Parked Pages (<span id="parked-count">0</span>)</h3>
+        <div id="parked-list"></div>
+      </div>
+
+      <button id="end-session-btn" class="secondary-btn">End Session</button>
+    </div>
+
+    <div class="footer">
+      <a href="#" id="settings-link">Settings</a>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

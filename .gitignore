@@ -1,0 +1,21 @@
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extension packages
+*.zip
+*.crx
+
+# Logs
+*.log
+
+# Node modules (if using build tools in future)
+node_modules/
+
+# API keys (if using separate config file)
+config.js
+.env

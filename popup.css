@@ -1,0 +1,223 @@
+body {
+  width: 400px;
+  min-height: 300px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f8f9fa;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+.view {
+  animation: fadeIn 0.2s ease-in;
+}
+
+.view.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.description {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 13px;
+}
+
+#goal-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+#goal-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 10px 20px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: #357abd;
+}
+
+.primary-btn:active {
+  background: #2a5f99;
+}
+
+.primary-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 10px 20px;
+  background: #fff;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+}
+
+.secondary-btn:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+.goal-display {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.goal-display label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.goal-display p {
+  margin: 0;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.session-stats {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.stat-label {
+  color: #666;
+}
+
+#eval-count {
+  font-weight: 600;
+  color: #4a90e2;
+}
+
+.parked-section {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.parked-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+#parked-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.parked-item {
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.parked-item:last-child {
+  margin-bottom: 0;
+}
+
+.parked-item a {
+  color: #4a90e2;
+  text-decoration: none;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parked-item a:hover {
+  text-decoration: underline;
+}
+
+.parked-empty {
+  color: #999;
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+}
+
+.footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.footer a {
+  color: #666;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.footer a:hover {
+  color: #4a90e2;
+  text-decoration: underline;
+}
