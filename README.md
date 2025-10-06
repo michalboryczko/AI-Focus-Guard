@@ -23,6 +23,29 @@ A Chrome browser extension that helps researchers and stay focused during resear
   - Ignore alerts for 10 minutes
 - **Rate Limiting**: Max 1 evaluation per tab per minute (resets on URL change), 10 evaluations per session
 
+## Screenshots
+
+### Setting a Focus Goal
+![Session Tab](docs/images/session_tab.png)
+### Set your research goal in the popup to start a focus session.
+
+### Off-Topic Page Detection
+![Blocked Example](docs/images/blocked_example.png)
+
+#### Full-page modal appears when you visit an off-topic page, making it impossible to ignore.
+
+### Explaining Relevance (Revalidation)
+![Revalidation](docs/images/off_revalidate.png)
+
+#### Provide an explanation for why a page might be relevant, and the AI will re-evaluate with your context.
+
+### Revalidation Results
+![Revalidation Failed](docs/images/off_revalidate_failed.png)
+
+#### If the page is still off-topic after revalidation, you'll see the updated score and reasoning.
+
+---
+
 ## Setup Instructions
 
 ### 1. Get OpenAI API Key
