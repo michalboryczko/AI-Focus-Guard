@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Focus Guard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI-assisted focus guard for research sessions - helps you stay on track with your goals",
   "permissions": [
     "storage",
