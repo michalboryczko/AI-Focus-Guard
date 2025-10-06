@@ -1,6 +1,8 @@
 # AI Focus Guard
 
-A Chrome browser extension that helps researchers with ADHD stay focused during research sessions by using AI to evaluate whether visited pages are relevant to their stated goal.
+A Chrome browser extension that helps researchers and stay focused during research sessions by using AI to evaluate whether visited pages are relevant to their stated goal.
+
+> **⚡ AI-Generated Project**: This extension was fully generated using AI. ChatGPT was used to create the specifications and descriptions, while Claude Code handled the complete implementation.
 
 ## Features
 
@@ -9,15 +11,17 @@ A Chrome browser extension that helps researchers with ADHD stay focused during 
 - **Smart Cadence**: Adapts evaluation frequency based on page type
   - Normal pages: Evaluated after 30s dwell time
   - General-purpose pages (search engines, chatbots): Evaluated every 60s when active
+  - **NEW**: URL changes reset evaluation timer immediately
 - **Visual Alerts**:
   - ✅ Green indicator for on-topic pages
   - ⚠️ Amber indicator for borderline pages
-  - ⛔ Red banner for off-topic pages (score < 80)
+  - ⛔ **NEW**: Full-page modal for off-topic pages (score < 80) - harder to ignore!
 - **Quick Actions**: When off-topic:
   - Return to previous page
+  - **NEW**: Explain why page is relevant (triggers AI revalidation)
   - Park page for later review
   - Ignore alerts for 10 minutes
-- **Rate Limiting**: Max 1 evaluation per tab per minute, 10 evaluations per session
+- **Rate Limiting**: Max 1 evaluation per tab per minute (resets on URL change), 10 evaluations per session
 
 ## Setup Instructions
 
@@ -149,6 +153,32 @@ With `gpt-4o-mini`:
 - 10 evaluations per session: ~$0.002
 - Very affordable for testing and personal use
 
+## Recent Improvements (v1.1)
+
+Based on user feedback and `improvments.md`, the following enhancements were implemented:
+
+### 1. URL Change Detection ✅
+- Evaluation timer now resets immediately when navigating to a new URL in the same tab
+- No more artificial 1-minute wait for new pages
+- URL monitoring runs every second to detect SPA navigation
+
+### 2. User Justification & Revalidation ✅
+- Off-topic modal includes text input for user to explain relevance
+- "Explain relevance" button triggers AI revalidation with user's explanation
+- If revalidation score ≥ 80, modal auto-dismisses
+- If still < 80, shows updated score and rationale
+
+### 3. Stronger Alert UX ✅
+- Off-topic pages now show **full-page modal** 
+- Dimmed background overlay
+- Centered modal with red header
+- ESC key or click outside to dismiss
+- Borderline pages still show subtle banner (unchanged)
+
+See `IMPROVEMENTS_SUMMARY.md` for detailed documentation.
+
+---
+
 ## Future Enhancements
 
 - [ ] Configurable API key via settings UI
@@ -158,6 +188,36 @@ With `gpt-4o-mini`:
 - [ ] Support for other AI models
 - [ ] Privacy mode (skip sensitive pages)
 - [ ] Custom evaluation cadence settings
+- [ ] Keyboard shortcuts for quick actions
+
+## AI Development Process
+
+This project demonstrates the power of AI-assisted development:
+
+### Tools Used
+- **ChatGPT**: Generated the initial concept, specifications (`description.md`), and improvement requirements (`improvments.md`)
+- **Claude Code**: Implemented the entire codebase from scratch, including:
+  - Extension architecture (Manifest V3)
+  - Service worker with OpenAI integration
+  - Content script with page analysis
+  - Popup UI and storage management
+  - All improvements and enhancements
+
+### Development Timeline
+1. **Initial MVP**: Complete extension implementation from `description.md`
+2. **Improvements**: Full-page modal, URL change detection, and revalidation feature from `improvments.md`
+3. **Documentation**: README, testing guide, and improvement summary
+
+### Files Generated
+- All JavaScript files (service-worker.js, content-script.js, popup.js, storage.js)
+- All UI files (HTML, CSS)
+- Extension manifest
+- Icons (SVG + PNG conversion)
+- Complete documentation
+
+All code was written by Claude Code with no manual coding required.
+
+---
 
 ## License
 

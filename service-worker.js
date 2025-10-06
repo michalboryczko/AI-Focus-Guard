@@ -31,6 +31,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleIgnoreTab(sender.tab.id).then(sendResponse);
     return true;
   }
+
+  if (message.type === 'REVALIDATE_PAGE') {
+    handleRevalidation(message, sender.tab.id).then(sendResponse);
+    return true;
+  }
 });
 
 async function handleEvaluation(message, tabId) {
@@ -47,8 +52,8 @@ async function handleEvaluation(message, tabId) {
       return { success: false, error: 'Tab is ignored' };
     }
 
-    // Check rate limit for this tab
-    const canEvaluate = await StorageManager.canEvaluateTab(tabId);
+    // Check rate limit for this tab (reset on URL change)
+    const canEvaluate = await StorageManager.canEvaluateTab(tabId, message.pageUrl);
     if (!canEvaluate) {
       return { success: false, error: 'Rate limit: 1 evaluation per minute per tab' };
     }
@@ -80,8 +85,8 @@ async function handleEvaluation(message, tabId) {
       return result;
     }
 
-    // Store evaluation result
-    await StorageManager.setTabEval(tabId, result.data);
+    // Store evaluation result with URL
+    await StorageManager.setTabEval(tabId, result.data, message.pageUrl);
     await StorageManager.incrementSessionCount();
 
     return { success: true, data: result.data };
@@ -193,6 +198,134 @@ async function handleIgnoreTab(tabId) {
     return { success: true };
   } catch (error) {
     console.error('Error ignoring tab:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function handleRevalidation(message, tabId) {
+  try {
+    // Check if we have a goal
+    const goal = await StorageManager.getGoal();
+    if (!goal) {
+      return { success: false, error: 'No active goal' };
+    }
+
+    // Check session limit (10 evals per session, revalidations don't count separately)
+    const sessionCount = await StorageManager.getSessionCount();
+    if (sessionCount >= 10) {
+      return { success: false, error: 'Session limit reached (10 evaluations)' };
+    }
+
+    // Call OpenAI API with user explanation
+    const result = await revalidateWithExplanation(
+      goal,
+      message.pageTitle,
+      message.pageUrl,
+      message.pageText,
+      message.userExplanation
+    );
+
+    if (!result.success) {
+      return result;
+    }
+
+    // Store updated evaluation result with URL
+    await StorageManager.setTabEval(tabId, result.data, message.pageUrl);
+    // Note: We don't increment session count for revalidations
+
+    return { success: true, data: result.data };
+
+  } catch (error) {
+    console.error('Error handling revalidation:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function revalidateWithExplanation(goal, pageTitle, pageUrl, pageText, userExplanation) {
+  try {
+    // Build user prompt with explanation
+    const userPrompt = `GOAL:
+${goal}
+
+PAGE_META:
+title: ${pageTitle}
+url: ${pageUrl}
+
+PAGE_TEXT_SNIPPET (~500 words):
+${pageText}
+
+USER EXPLANATION:
+The user provided an explanation why this page may still be relevant:
+${userExplanation}
+
+TASK:
+Re-evaluate the page vs. the GOAL considering this explanation.
+1. Decide if this page is a general-purpose page (true/false).
+2. Score how related this page is to the GOAL on a 0–100 scale.
+3. Provide a short rationale and up to 5 matched terms.
+
+Return strict JSON:
+
+{
+  "general_purpose": true | false,
+  "goal_related_score": <integer 0-100>,
+  "verdict": "on_topic" | "borderline" | "off_topic",
+  "rationale": "<max 2 sentences>",
+  "matched_terms": ["<up to 5 terms>"]
+}`;
+
+    const response = await fetch(OPENAI_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: MAX_OUTPUT_TOKENS,
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`OpenAI API error: ${response.status} ${errorData.error?.message || ''}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+
+    if (!content) {
+      throw new Error('No content in OpenAI response');
+    }
+
+    // Parse JSON response
+    let evaluation;
+    try {
+      evaluation = JSON.parse(content);
+    } catch (error) {
+      console.error('Failed to parse OpenAI JSON response:', content);
+      throw new Error('Invalid JSON response from OpenAI');
+    }
+
+    // Validate response structure
+    if (
+      typeof evaluation.general_purpose !== 'boolean' ||
+      typeof evaluation.goal_related_score !== 'number' ||
+      !['on_topic', 'borderline', 'off_topic'].includes(evaluation.verdict)
+    ) {
+      throw new Error('Invalid evaluation structure');
+    }
+
+    return { success: true, data: evaluation };
+
+  } catch (error) {
+    console.error('OpenAI API error (revalidation):', error);
     return { success: false, error: error.message };
   }
 }

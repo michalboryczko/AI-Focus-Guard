@@ -52,12 +52,13 @@ const StorageManager = {
     return tabEvals[tabId] || null;
   },
 
-  async setTabEval(tabId, evalData) {
+  async setTabEval(tabId, evalData, url) {
     const result = await chrome.storage.local.get([this.KEYS.TAB_EVALS]);
     const tabEvals = result[this.KEYS.TAB_EVALS] || {};
     tabEvals[tabId] = {
       ...evalData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      url: url || null
     };
     await chrome.storage.local.set({ [this.KEYS.TAB_EVALS]: tabEvals });
   },
@@ -69,11 +70,17 @@ const StorageManager = {
     await chrome.storage.local.set({ [this.KEYS.TAB_EVALS]: tabEvals });
   },
 
-  // Check if tab can be evaluated (rate limit: 1/minute)
-  async canEvaluateTab(tabId) {
+  // Check if tab can be evaluated (rate limit: 1/minute, but reset on URL change)
+  async canEvaluateTab(tabId, currentUrl) {
     const tabEval = await this.getTabEval(tabId);
     if (!tabEval) return true;
 
+    // If URL has changed, always allow evaluation (new page)
+    if (currentUrl && tabEval.url !== currentUrl) {
+      return true;
+    }
+
+    // For same URL, enforce 60-second rate limit
     const timeSinceLastEval = Date.now() - tabEval.timestamp;
     return timeSinceLastEval >= 60000; // 60 seconds
   },

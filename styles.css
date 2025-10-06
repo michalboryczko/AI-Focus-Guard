@@ -193,10 +193,253 @@
   border-color: #999;
 }
 
+/* Full-page modal overlay for off-topic alerts */
+.focus-guard-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483646;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.focus-guard-modal {
+  position: relative;
+  z-index: 2147483647;
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.focus-guard-modal .alert-header {
+  background: #e74c3c;
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.focus-guard-modal .alert-icon {
+  font-size: 28px;
+}
+
+.focus-guard-modal .alert-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.focus-guard-modal .alert-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.focus-guard-modal .alert-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.focus-guard-modal .alert-body {
+  padding: 24px;
+  background: white;
+}
+
+.focus-guard-modal .alert-rationale {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.focus-guard-modal .alert-terms {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.focus-guard-modal .explanation-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.focus-guard-modal .explanation-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.focus-guard-modal .explanation-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.focus-guard-modal .explanation-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.focus-guard-modal .explanation-input::placeholder {
+  color: #999;
+}
+
+.focus-guard-modal .revalidation-status {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: none;
+}
+
+.focus-guard-modal .revalidation-status.loading {
+  display: block;
+  background: #f0f7ff;
+  color: #4a90e2;
+}
+
+.focus-guard-modal .revalidation-status.success {
+  display: block;
+  background: #e8f5e9;
+  color: #27ae60;
+}
+
+.focus-guard-modal .revalidation-status.error {
+  display: block;
+  background: #ffebee;
+  color: #e74c3c;
+}
+
+.focus-guard-modal .alert-actions {
+  padding: 20px 24px;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.focus-guard-modal .alert-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.focus-guard-modal .alert-btn-primary {
+  background: #4a90e2;
+  color: white;
+}
+
+.focus-guard-modal .alert-btn-primary:hover:not(:disabled) {
+  background: #357abd;
+}
+
+.focus-guard-modal .alert-btn-secondary {
+  background: white;
+  color: #4a90e2;
+  border: 1px solid #4a90e2;
+}
+
+.focus-guard-modal .alert-btn-secondary:hover:not(:disabled) {
+  background: #4a90e2;
+  color: white;
+}
+
+.focus-guard-modal .alert-btn-tertiary {
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.focus-guard-modal .alert-btn-tertiary:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #999;
+}
+
+.focus-guard-modal .alert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .focus-guard-alert {
     width: calc(100vw - 40px);
     right: 20px;
+  }
+
+  .focus-guard-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .focus-guard-modal .alert-header {
+    padding: 16px 20px;
+  }
+
+  .focus-guard-modal .alert-body {
+    padding: 20px;
+  }
+
+  .focus-guard-modal .alert-actions {
+    padding: 16px 20px;
   }
 }

@@ -11,6 +11,8 @@ class FocusGuard {
     this.hasGoal = false;
     this.lastTextHash = null;
     this.alertUI = null;
+    this.currentUrl = window.location.href;
+    this.urlCheckInterval = null;
   }
 
   async init() {
@@ -45,6 +47,9 @@ class FocusGuard {
   }
 
   start() {
+    // Store initial URL
+    this.currentUrl = window.location.href;
+
     // Start initial evaluation timer (30s for normal pages)
     this.evaluationTimer = setTimeout(() => {
       this.triggerEvaluation(false);
@@ -52,6 +57,9 @@ class FocusGuard {
 
     // Set up mutation observer for text changes
     this.setupMutationObserver();
+
+    // Monitor URL changes (for SPAs and history.pushState)
+    this.setupUrlMonitoring();
   }
 
   stop() {
@@ -64,6 +72,11 @@ class FocusGuard {
     if (this.reEvaluationTimer) {
       clearInterval(this.reEvaluationTimer);
       this.reEvaluationTimer = null;
+    }
+
+    if (this.urlCheckInterval) {
+      clearInterval(this.urlCheckInterval);
+      this.urlCheckInterval = null;
     }
 
     // Disconnect observer
@@ -101,6 +114,45 @@ class FocusGuard {
     });
 
     this.mutationObserver.observe(targetNode, config);
+  }
+
+  setupUrlMonitoring() {
+    // Check for URL changes every second (for SPAs)
+    this.urlCheckInterval = setInterval(() => {
+      const newUrl = window.location.href;
+      if (newUrl !== this.currentUrl) {
+        console.log('URL changed from', this.currentUrl, 'to', newUrl);
+        this.handleUrlChange(newUrl);
+      }
+    }, 1000);
+  }
+
+  handleUrlChange(newUrl) {
+    this.currentUrl = newUrl;
+
+    // Clear existing evaluation timer
+    if (this.evaluationTimer) {
+      clearTimeout(this.evaluationTimer);
+    }
+
+    // Clear re-evaluation timer (if general-purpose)
+    if (this.reEvaluationTimer) {
+      clearInterval(this.reEvaluationTimer);
+      this.reEvaluationTimer = null;
+    }
+
+    // Remove any existing alert
+    this.removeAlertUI();
+
+    // Reset state for new page
+    this.lastEvaluation = null;
+    this.isGeneralPurpose = null;
+    this.lastTextHash = null;
+
+    // Start new evaluation timer (30s)
+    this.evaluationTimer = setTimeout(() => {
+      this.triggerEvaluation(false);
+    }, 30000);
   }
 
   getTextHash() {
@@ -230,9 +282,13 @@ class FocusGuard {
   }
 
   showOffTopicAlert(rationale, matchedTerms) {
-    const alert = document.createElement('div');
-    alert.className = 'focus-guard-alert focus-guard-off-topic';
-    alert.innerHTML = `
+    // Create full-page modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'focus-guard-modal-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'focus-guard-modal';
+    modal.innerHTML = `
       <div class="alert-header">
         <span class="alert-icon">⛔</span>
         <span class="alert-title">Off-topic page detected</span>
@@ -243,35 +299,151 @@ class FocusGuard {
         ${matchedTerms && matchedTerms.length > 0 ? `
           <p class="alert-terms">Matched: ${matchedTerms.map(t => this.escapeHtml(t)).join(', ')}</p>
         ` : ''}
+
+        <div class="explanation-section">
+          <label class="explanation-label" for="focus-guard-explanation">
+            Why is this page relevant to your goal?
+          </label>
+          <textarea
+            class="explanation-input"
+            id="focus-guard-explanation"
+            placeholder="Example: This page provides background context on neural networks which I need to understand before diving into classification techniques..."
+            rows="3"
+          ></textarea>
+          <div class="revalidation-status" id="focus-guard-status"></div>
+        </div>
       </div>
       <div class="alert-actions">
-        <button class="alert-btn alert-btn-primary" id="focus-guard-return">Return to goal</button>
-        <button class="alert-btn alert-btn-secondary" id="focus-guard-park">Park page</button>
-        <button class="alert-btn alert-btn-tertiary" id="focus-guard-ignore">Ignore 10 min</button>
+        <button class="alert-btn alert-btn-primary" id="focus-guard-return">Return to previous page</button>
+        <button class="alert-btn alert-btn-secondary" id="focus-guard-explain">Explain relevance</button>
+        <button class="alert-btn alert-btn-tertiary" id="focus-guard-park">Park page</button>
+        <button class="alert-btn alert-btn-tertiary" id="focus-guard-ignore">Ignore for 10 min</button>
       </div>
     `;
 
-    document.body.appendChild(alert);
-    this.alertUI = alert;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    this.alertUI = overlay;
 
     // Add event listeners
-    document.getElementById('focus-guard-close')?.addEventListener('click', () => {
-      this.removeAlertUI();
+    const closeModal = () => this.removeAlertUI();
+
+    // Close button
+    document.getElementById('focus-guard-close')?.addEventListener('click', closeModal);
+
+    // ESC key to close
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // Click overlay to close
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeModal();
+      }
     });
 
+    // Return button
     document.getElementById('focus-guard-return')?.addEventListener('click', () => {
       window.history.back();
+      closeModal();
     });
 
+    // Explain relevance button
+    document.getElementById('focus-guard-explain')?.addEventListener('click', async () => {
+      await this.handleRevalidation();
+    });
+
+    // Park button
     document.getElementById('focus-guard-park')?.addEventListener('click', async () => {
       await this.parkCurrentPage();
-      this.removeAlertUI();
+      closeModal();
     });
 
+    // Ignore button
     document.getElementById('focus-guard-ignore')?.addEventListener('click', async () => {
       await this.ignoreCurrentTab();
-      this.removeAlertUI();
+      closeModal();
     });
+  }
+
+  async handleRevalidation() {
+    const explanationInput = document.getElementById('focus-guard-explanation');
+    const statusDiv = document.getElementById('focus-guard-status');
+    const explainBtn = document.getElementById('focus-guard-explain');
+
+    if (!explanationInput || !statusDiv || !explainBtn) return;
+
+    const userExplanation = explanationInput.value.trim();
+
+    if (!userExplanation) {
+      statusDiv.className = 'revalidation-status error';
+      statusDiv.textContent = 'Please provide an explanation first.';
+      return;
+    }
+
+    if (userExplanation.length < 20) {
+      statusDiv.className = 'revalidation-status error';
+      statusDiv.textContent = 'Please provide a more detailed explanation (at least 20 characters).';
+      return;
+    }
+
+    // Show loading state
+    statusDiv.className = 'revalidation-status loading';
+    statusDiv.textContent = 'Revalidating with AI...';
+    explainBtn.disabled = true;
+
+    try {
+      const pageTitle = document.title;
+      const pageUrl = window.location.href;
+      const pageText = this.extractPageText(500);
+
+      const response = await chrome.runtime.sendMessage({
+        type: 'REVALIDATE_PAGE',
+        pageTitle,
+        pageUrl,
+        pageText,
+        userExplanation
+      });
+
+      if (response.success) {
+        const { goal_related_score, verdict } = response.data;
+
+        if (goal_related_score >= 80) {
+          // Success! Close modal
+          statusDiv.className = 'revalidation-status success';
+          statusDiv.textContent = `✓ Revalidation successful! Score: ${goal_related_score}/100`;
+
+          // Update last evaluation
+          this.lastEvaluation = response.data;
+
+          // Close modal after short delay
+          setTimeout(() => {
+            this.removeAlertUI();
+            // Show success indicator
+            this.showStatusIndicator('on-topic', '✅ On topic (validated)', response.data.rationale);
+          }, 1500);
+        } else {
+          // Still off-topic
+          statusDiv.className = 'revalidation-status error';
+          statusDiv.textContent = `Still off-topic (score: ${goal_related_score}/100). ${response.data.rationale}`;
+          explainBtn.disabled = false;
+        }
+      } else {
+        statusDiv.className = 'revalidation-status error';
+        statusDiv.textContent = `Revalidation failed: ${response.error}`;
+        explainBtn.disabled = false;
+      }
+    } catch (error) {
+      console.error('Error during revalidation:', error);
+      statusDiv.className = 'revalidation-status error';
+      statusDiv.textContent = 'An error occurred during revalidation.';
+      explainBtn.disabled = false;
+    }
   }
 
   async parkCurrentPage() {
